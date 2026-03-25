@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PONTIS</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0a0a0a;
+  color: white;
+}
+
+.container {
+  max-width: 500px;
+  margin: auto;
+  padding: 30px;
+}
+
+h1 {
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+
+p {
+  color: #ccc;
+}
+
+button {
+  width: 100%;
+  padding: 15px;
+  margin-top: 10px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.primary {
+  background: gold;
+  color: black;
+}
+
+.input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.card {
+  background: #111;
+  padding: 15px;
+  margin-top: 20px;
+  border-radius: 10px;
+}
+
+.small {
+  font-size: 14px;
+  color: #aaa;
+  margin-top: 10px;
+}
+
+.lock {
+  margin-top: 20px;
+  padding: 15px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 10px;
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- HERO -->
+  <h1>Parle anglais sans stress</h1>
+  <p>Tu bloques ? Ce n’est pas ton niveau.</p>
+
+  <button class="primary" onclick="showPrep()">Tester en 30 secondes</button>
+
+  <!-- PREP TOOL -->
+  <div id="prep" style="display:none;">
+
+    <h2>Ta situation</h2>
+
+    <input class="input" id="situation" placeholder="Ex: appel client, réunion, voyage">
+
+    <button class="primary" onclick="generate()">Générer</button>
+
+    <div id="result" class="card" style="display:none;"></div>
+
+    <!-- PAYWALL TEST -->
+    <div id="lock" class="lock" style="display:none;">
+      🔒 Tu veux continuer ?
+
+      <p>Accède à toutes les situations et parle sans bloquer.</p>
+
+      <button class="primary" onclick="fakePay()">Débloquer (PRO)</button>
+
+      <div class="small">Test : dis-nous si tu paierais pour ça</div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+let usage = 0;
+
+const database = {
+  "appel client": {
+    fr: "Je vous rappelle demain",
+    en: "I'll call you back tomorrow",
+    natural: "I'll get back to you tomorrow"
+  },
+  "réunion": {
+    fr: "Je suis d'accord",
+    en: "I agree",
+    natural: "That makes sense"
+  },
+  "voyage": {
+    fr: "Où sont les toilettes ?",
+    en: "Where is the bathroom?",
+    natural: "Where can I find the restroom?"
+  }
+};
+
+function showPrep() {
+  document.getElementById("prep").style.display = "block";
+}
+
+function generate() {
+  const input = document.getElementById("situation").value.toLowerCase();
+  usage++;
+
+  let result = database[input];
+
+  if (!result) {
+    result = {
+      fr: "Je vérifie",
+      en: "Let me check",
+      natural: "Let me check that for you"
+    };
+  }
+
+  document.getElementById("result").style.display = "block";
+  document.getElementById("result").innerHTML = `
+    <p><strong>FR → EN</strong><br>${result.fr} → ${result.en}</p>
+    <p><strong>Version naturelle</strong><br>${result.natural}</p>
+    <p class="small">🧠 Tu sais déjà. Respire.</p>
+  `;
+
+  if (usage >= 3) {
+    document.getElementById("lock").style.display = "block";
+  }
+}
+
+function fakePay() {
+  alert("Merci 🙏 Dis-moi en message si tu aurais payé pour ça.");
+}
+
+</script>
+
+</body>
+</html>
