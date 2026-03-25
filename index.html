@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PONTIS Pro</title>
+    <style>
+        body { background: #0a0a0a; color: white; font-family: sans-serif; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 400px; }
+        h1 { color: #FFD700; font-size: 45px; margin: 0; font-weight: 900; }
+        p.subtitle { color: #888; margin-top: 5px; margin-bottom: 30px; }
+        input { width: 100%; padding: 18px; margin-top: 15px; background: #222; border: 1px solid #444; color: white; border-radius: 12px; box-sizing: border-box; outline: none; }
+        input:focus { border-color: #FFD700; }
+        button { width: 100%; padding: 18px; margin-top: 15px; background: #FFD700; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:active { transform: scale(0.98); }
+        .resultat { background: #161616; padding: 25px; border-radius: 16px; margin-top: 25px; border: 1px solid #333; display: none; }
+        .paywall { text-align: center; display: none; margin-top: 25px; padding: 25px; border: 1px dashed #FFD700; border-radius: 16px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PONTIS</h1>
+        <p class="subtitle">L'anglais pro, de Douala à l'international.</p>
+        
+        <div id="main-ui">
+            <input type="text" id="prompt" placeholder="Ex: Je suis en retard au call...">
+            <button onclick="generer()">GÉNÉRER L'ANGLAIS PRO</button>
+        </div>
+
+        <div id="loader" style="display:none; color:#FFD700; margin-top:20px; text-align:center;">⚡ Analyse en cours...</div>
+
+        <div id="res-box" class="resultat">
+            <div style="font-size: 11px; text-transform: uppercase; color: #666; letter-spacing: 1px;">Anglais Naturel :</div>
+            <div id="anglais" style="font-size:22px; color:#FFD700; font-weight:bold; margin-top:10px;"></div>
+        </div>
+
+        <div id="email-capture" class="paywall">
+            <h3>📧 On garde le contact ?</h3>
+            <p style="color:#aaa; font-size:14px;">Laisse ton e-mail pour débloquer ta phrase et recevoir ton historique.</p>
+            <input type="email" id="email-user" placeholder="ton@email.com">
+            <button onclick="validerEmail()">DÉBLOQUER MA PHRASE</button>
+        </div>
+
+        <div id="paywall" class="paywall">
+            <h2 style="margin:0">🔒 Mode Illimité</h2>
+            <p style="color:#aaa; font-size:14px;">Tes 3 essais gratuits sont terminés. Deviens un pro maintenant.</p>
+            <button onclick="window.location.href='TON_LIEN_PAYEMENT_ICI'">PASSER PRO (5000 FCFA)</button>
+        </div>
+    </div>
+
+    <script>
+        let count = parseInt(localStorage.getItem('p_count')) || 0;
+        const SHEET_API = "https://api.sheetbest.com/sheets/d4cd6a4e-c2b6-4ca2-8ec9-a774c9c25fef";
+
+        async function generer() {
+            const input = document.getElementById('prompt').value;
+            if(!input) return;
+
+            // Bloquer au 3ème essai pour l'email
+            if(count === 2 && !localStorage.getItem('p_email')) {
+                document.getElementById('email-capture').style.display = 'block';
+                document.getElementById('main-ui').style.display = 'none';
+                return;
+            }
+
+            // Après 3 essais, paywall final
+            if(count >= 3) {
+                document.getElementById('paywall').style.display = 'block';
+                document.getElementById('main-ui').style.display = 'none';
+                document.getElementById('res-box').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('loader').style.display = 'block';
+            
+            try {
+                const r = await fetch('/api/generate', { method: 'POST', body: JSON.stringify({ prompt: input }) });
+                const d = await r.json();
+                document.getElementById('anglais').innerText = d.natural;
+                document.getElementById('res-box').style.display = 'block';
+                count++;
+                localStorage.setItem('p_count', count);
+            } catch (e) { alert("Vérifie ta connexion internet."); }
+            
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        async function validerEmail() {
+            const email = document.getElementById('email-user').value;
+            if(!email.includes('@')) return alert("E-mail invalide");
+
+            // ENVOI AUTOMATIQUE VERS TON GOOGLE SHEET
+            try {
+                await fetch(SHEET_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ Email: email, Date: new Date().toLocaleString() })
+                });
+            } catch (e) { console.log("Erreur Sheet"); }
+
+            localStorage.setItem('p_email', email);
+            document.getElementById('email-capture').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'block';
+            generer(); // Relance la génération automatiquement
+        }
+    </script>
+</body>
+</html>
